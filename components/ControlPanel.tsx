@@ -1,6 +1,6 @@
 import React from 'react';
-import { BackgroundMode, TextStyle, TranslationConfig } from '../types';
-import { Mic, MicOff, Settings, Minimize2, Maximize2, AlertCircle } from 'lucide-react';
+import { BackgroundMode, TextStyle, TranslationConfig, Persona } from '../types';
+import { Mic, MicOff, Settings, Minimize2, Maximize2, AlertCircle, User, Zap, Ghost, Cat, Coffee } from 'lucide-react';
 
 interface ControlPanelProps {
   isConnected: boolean;
@@ -136,6 +136,33 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
           >
             <div className={`w-4 h-4 bg-white rounded-full transition-transform ${playAudio ? 'translate-x-6' : ''}`} />
           </button>
+        </div>
+
+        {/* Persona Selector */}
+        <div>
+          <label className="block text-xs font-medium text-gray-400 mb-2">属性 (ペルソナ)</label>
+          <div className="grid grid-cols-5 gap-1">
+            {[
+              { persona: Persona.NONE, icon: <User size={14} />, label: 'なし' },
+              { persona: Persona.SAMURAI, icon: <Zap size={14} />, label: '侍' },
+              { persona: Persona.TSUNDERE, icon: <Ghost size={14} />, label: 'デレ' },
+              { persona: Persona.CAT, icon: <Cat size={14} />, label: '猫' },
+              { persona: Persona.BUTLER, icon: <Coffee size={14} />, label: '執事' },
+            ].map((option) => (
+              <button
+                key={option.persona}
+                onClick={() => setConfig({ ...config, persona: option.persona })}
+                className={`flex flex-col items-center justify-center py-2 rounded border transition-all ${config.persona === option.persona
+                  ? 'bg-emerald-600 border-emerald-500 text-white'
+                  : 'bg-gray-800 border-gray-700 hover:bg-gray-700 text-gray-400'
+                  }`}
+                title={option.label}
+              >
+                {option.icon}
+                <span className="text-[10px] mt-1">{option.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Background Selector */}

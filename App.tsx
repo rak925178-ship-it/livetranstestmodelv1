@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ControlPanel } from './components/ControlPanel';
 import { SubtitleDisplay } from './components/SubtitleDisplay';
 import { useGeminiLive } from './hooks/useGeminiLive';
-import { BackgroundMode, TextStyle, TranslationConfig } from './types';
+import { BackgroundMode, TextStyle, TranslationConfig, Persona } from './types';
 
 const App: React.FC = () => {
   // App State
@@ -10,7 +10,8 @@ const App: React.FC = () => {
   const [textStyle, setTextStyle] = useState<TextStyle>(TextStyle.OUTLINE);
   const [config, setConfig] = useState<TranslationConfig>({
     sourceLang: 'Japanese',
-    targetLang: 'English'
+    targetLang: 'English',
+    persona: Persona.NONE
   });
   const [playAudio, setPlayAudio] = useState(false);
 
@@ -30,6 +31,7 @@ const App: React.FC = () => {
     connect({
       sourceLang: config.sourceLang,
       targetLang: config.targetLang,
+      persona: config.persona,
       playAudio
     });
   };

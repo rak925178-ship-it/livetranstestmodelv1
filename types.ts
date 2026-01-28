@@ -11,9 +11,18 @@ export enum TextStyle {
   BOX = 'box'
 }
 
+export enum Persona {
+  NONE = 'none',
+  SAMURAI = 'samurai',
+  TSUNDERE = 'tsundere',
+  CAT = 'cat',
+  BUTLER = 'butler'
+}
+
 export interface TranslationConfig {
   sourceLang: string;
   targetLang: string;
+  persona: Persona;
 }
 
 export interface LiveState {

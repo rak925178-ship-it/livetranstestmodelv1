@@ -45,11 +45,13 @@ wss.on('connection', (ws, req) => {
         if (!process.env.API_KEY) {
           ws.send(JSON.stringify({ type: 'error', message: 'Server API_KEY missing' }));
         } else {
+          ws.persona = message.data.persona; // Store on socket if needed
           ws.send(JSON.stringify({ type: 'connected' }));
         }
       }
       else if (message.type === 'text_input') {
-        const { text, sourceLang, targetLang } = message.data;
+        const { text, sourceLang, targetLang, persona } = message.data;
+        console.log(`Translate Request: "${text}" [${sourceLang} -> ${targetLang}] Persona: ${persona}`);
 
         if (!text || text.trim().length === 0) return;
         if (!ai) {
@@ -58,9 +60,28 @@ wss.on('connection', (ws, req) => {
         }
 
         try {
+          let systemInstruction = `Translate the following ${sourceLang} text to ${targetLang} naturally for subtitles. Only output the translation, nothing else.`;
+
+          if (persona && persona !== 'none') {
+            switch (persona) {
+              case 'samurai':
+                systemInstruction += " Use archaic Japanese (samurai style), using words like 'でござる' or '某'.";
+                break;
+              case 'tsundere':
+                systemInstruction += " Use a tsundere personality (harsh but sometimes soft), common in anime.";
+                break;
+              case 'cat':
+                systemInstruction += " Translate with a cat-like personality, adding 'にゃ' or 'にゃん' to sentences.";
+                break;
+              case 'butler':
+                systemInstruction += " Use extremely polite and formal language suitable for a butler serving a master.";
+                break;
+            }
+          }
+
           const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
-            contents: `Translate the following ${sourceLang} text to ${targetLang} naturally for subtitles. Only output the translation, nothing else.\n\nText: "${text}"`,
+            contents: `${systemInstruction}\n\nText: "${text}"`,
           });
 
           const translatedText = response.text;

@@ -3,6 +3,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 interface UseGeminiLiveProps {
   sourceLang: string;
   targetLang: string;
+  persona: string;
   playAudio: boolean;
 }
 
@@ -26,8 +27,9 @@ export const useGeminiLive = () => {
 
   // Buffer for translation
   const currentTranscriptionRef = useRef<string>('');
+  const personaRef = useRef<string>('none');
 
-  const connect = useCallback(async ({ sourceLang, targetLang, playAudio }: UseGeminiLiveProps) => {
+  const connect = useCallback(async ({ sourceLang, targetLang, persona, playAudio }: UseGeminiLiveProps) => {
     try {
       if (!('SpeechRecognition' in window) && !('webkitSpeechRecognition' in window)) {
         throw new Error("Browser does not support Speech Recognition");
@@ -38,6 +40,7 @@ export const useGeminiLive = () => {
       setCurrentText('');
       setInputText('');
       currentTranscriptionRef.current = '';
+      personaRef.current = persona;
 
       // Connect to Translation Server
       let wsUrl = 'ws://localhost:8080';
@@ -55,7 +58,7 @@ export const useGeminiLive = () => {
       socketRef.current = socket;
 
       socket.onopen = () => {
-        socket.send(JSON.stringify({ type: 'config', data: { sourceLang, targetLang } }));
+        socket.send(JSON.stringify({ type: 'config', data: { sourceLang, targetLang, persona } }));
       };
 
       socket.onmessage = async (event) => {
@@ -143,7 +146,8 @@ export const useGeminiLive = () => {
             data: {
               text: transcript,
               sourceLang,
-              targetLang
+              targetLang,
+              persona: personaRef.current
             }
           }));
         }
@@ -208,7 +212,8 @@ export const useGeminiLive = () => {
         data: {
           text,
           sourceLang,
-          targetLang
+          targetLang,
+          persona: personaRef.current
         }
       }));
     } else {
