@@ -15,20 +15,22 @@ const App: React.FC = () => {
   const [playAudio, setPlayAudio] = useState(false);
 
   // Logic Hook
-  const { 
-    isConnected, 
-    isConnecting, 
-    error, 
-    currentText, 
-    connect, 
-    disconnect 
+  const {
+    isConnected,
+    isConnecting,
+    error,
+    currentText,
+    inputText,
+    connect,
+    disconnect,
+    simulateVoiceInput
   } = useGeminiLive();
 
   const handleConnect = () => {
-    connect({ 
-      sourceLang: config.sourceLang, 
+    connect({
+      sourceLang: config.sourceLang,
       targetLang: config.targetLang,
-      playAudio 
+      playAudio
     });
   };
 
@@ -43,12 +45,12 @@ const App: React.FC = () => {
   };
 
   return (
-    <div 
+    <div
       className="relative w-screen h-screen overflow-hidden transition-colors duration-500"
       style={{ backgroundColor: getBgStyle() }}
     >
       {/* Controls Overlay */}
-      <ControlPanel 
+      <ControlPanel
         isConnected={isConnected}
         isConnecting={isConnecting}
         onConnect={handleConnect}
@@ -62,12 +64,14 @@ const App: React.FC = () => {
         playAudio={playAudio}
         setPlayAudio={setPlayAudio}
         error={error}
+        simulateVoiceInput={simulateVoiceInput}
       />
 
       {/* Main Translation Display */}
       <main className="absolute inset-0 z-0">
-        <SubtitleDisplay 
-          text={currentText} 
+        <SubtitleDisplay
+          text={currentText}
+          inputText={inputText}
           bgMode={bgMode}
           textStyle={textStyle}
         />

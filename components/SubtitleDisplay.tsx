@@ -3,11 +3,12 @@ import { BackgroundMode, TextStyle } from '../types';
 
 interface SubtitleDisplayProps {
   text: string;
+  inputText?: string;
   bgMode: BackgroundMode;
   textStyle: TextStyle;
 }
 
-export const SubtitleDisplay: React.FC<SubtitleDisplayProps> = ({ text, bgMode, textStyle }) => {
+export const SubtitleDisplay: React.FC<SubtitleDisplayProps> = ({ text, inputText, bgMode, textStyle }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom if text gets too long
@@ -15,7 +16,7 @@ export const SubtitleDisplay: React.FC<SubtitleDisplayProps> = ({ text, bgMode, 
     if (containerRef.current) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
-  }, [text]);
+  }, [text, inputText]);
 
   // Determine text color and rendering classes based on style
   const getTextClasses = () => {
@@ -31,24 +32,37 @@ export const SubtitleDisplay: React.FC<SubtitleDisplayProps> = ({ text, bgMode, 
     }
   };
 
-  const isEmpty = !text || text.trim().length === 0;
+  const isEmpty = (!text || text.trim().length === 0) && (!inputText || inputText.trim().length === 0);
 
   return (
     <div
       ref={containerRef}
       className="w-full h-full flex flex-col justify-end items-center p-8 pb-16 overflow-y-auto no-scrollbar scroll-smooth"
     >
-      <div className="max-w-[90%] text-center transition-all duration-300 ease-in-out">
+      <div className="max-w-[90%] text-center transition-all duration-300 ease-in-out flex flex-col gap-4">
         {isEmpty ? (
           <div className={`text-3xl opacity-30 font-semibold ${bgMode === BackgroundMode.NORMAL ? 'text-white' : 'text-black'}`}>
             音声待機中...
           </div>
         ) : (
-          <span
-            className={`text-5xl md:text-6xl lg:text-7xl leading-tight break-words ${getTextClasses()}`}
-          >
-            {text}
-          </span>
+          <>
+            {/* Input Text (Source) */}
+            {inputText && (
+              <div className={`text-2xl md:text-3xl lg:text-4xl opacity-80 mb-2 ${bgMode === BackgroundMode.NORMAL ? 'text-gray-400' : 'text-white text-outline-black'
+                }`}>
+                {inputText}
+              </div>
+            )}
+
+            {/* Translated Text (Target) */}
+            {text && (
+              <div
+                className={`text-5xl md:text-6xl lg:text-7xl leading-tight break-words ${getTextClasses()}`}
+              >
+                {text}
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

@@ -16,6 +16,7 @@ interface ControlPanelProps {
   playAudio: boolean;
   setPlayAudio: (play: boolean) => void;
   error: string | null;
+  simulateVoiceInput?: (text: string, sourceLang: string, targetLang: string) => void;
 }
 
 export const ControlPanel: React.FC<ControlPanelProps> = ({
@@ -31,7 +32,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
   setConfig,
   playAudio,
   setPlayAudio,
-  error
+  error,
+  simulateVoiceInput
 }) => {
   const [isCollapsed, setIsCollapsed] = React.useState(false);
 
@@ -82,8 +84,8 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
             onClick={onConnect}
             disabled={isConnecting}
             className={`w-full py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors ${isConnecting
-                ? 'bg-gray-600 cursor-wait'
-                : 'bg-emerald-600 hover:bg-emerald-500 text-white'
+              ? 'bg-gray-600 cursor-wait'
+              : 'bg-emerald-600 hover:bg-emerald-500 text-white'
               }`}
           >
             {isConnecting ? '接続中...' : <><Mic size={20} /> 翻訳開始</>}
@@ -170,13 +172,34 @@ export const ControlPanel: React.FC<ControlPanelProps> = ({
                 key={option.style}
                 onClick={() => setTextStyle(option.style)}
                 className={`px-2 py-1.5 text-xs rounded border transition-colors ${textStyle === option.style
-                    ? 'bg-emerald-600 border-emerald-500 text-white'
-                    : 'bg-gray-800 border-gray-700 hover:bg-gray-700'
+                  ? 'bg-emerald-600 border-emerald-500 text-white'
+                  : 'bg-gray-800 border-gray-700 hover:bg-gray-700'
                   }`}
               >
                 {option.label}
               </button>
             ))}
+          </div>
+        </div>
+
+        {/* Test Inputs */}
+        <div className="pt-2 border-t border-gray-700">
+          <label className="block text-xs font-medium text-gray-400 mb-2">翻訳テスト (発話シミュレーション)</label>
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={() => simulateVoiceInput && simulateVoiceInput("こんにちは、ご機嫌いかがですか", config.sourceLang, config.targetLang)}
+              disabled={!isConnected}
+              className="bg-gray-800 hover:bg-gray-700 disabled:opacity-50 text-xs py-2 px-3 rounded border border-gray-600 text-left transition-colors"
+            >
+              Test: こんにちは、ご機嫌いかがですか
+            </button>
+            <button
+              onClick={() => simulateVoiceInput && simulateVoiceInput("Hello, How are you.", config.sourceLang, config.targetLang)}
+              disabled={!isConnected}
+              className="bg-gray-800 hover:bg-gray-700 disabled:opacity-50 text-xs py-2 px-3 rounded border border-gray-600 text-left transition-colors"
+            >
+              Test: Hello, How are you.
+            </button>
           </div>
         </div>
       </div>

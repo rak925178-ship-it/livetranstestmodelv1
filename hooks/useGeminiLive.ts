@@ -19,6 +19,7 @@ export const useGeminiLive = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentText, setCurrentText] = useState<string>('');
+  const [inputText, setInputText] = useState<string>('');
 
   const socketRef = useRef<WebSocket | null>(null);
   const recognitionRef = useRef<any | null>(null);
@@ -35,6 +36,7 @@ export const useGeminiLive = () => {
       setIsConnecting(true);
       setError(null);
       setCurrentText('');
+      setInputText('');
       currentTranscriptionRef.current = '';
 
       // Connect to Translation Server
@@ -126,16 +128,25 @@ export const useGeminiLive = () => {
       const lastResultIndex = event.results.length - 1;
       const transcript = event.results[lastResultIndex][0].transcript;
 
-      // Send text to backend for translation
-      if (socketRef.current?.readyState === WebSocket.OPEN && transcript.trim()) {
-        socketRef.current.send(JSON.stringify({
-          type: 'text_input',
-          data: {
-            text: transcript,
-            sourceLang,
-            targetLang
-          }
-        }));
+      if (transcript.trim()) {
+        setInputText(prev => {
+          // Keep last few sentences or just append? 
+          // Ideally we just want to see the latest input.
+          // Let's just show the latest recognized phrase for clarity.
+          return transcript;
+        });
+
+        // Send text to backend for translation
+        if (socketRef.current?.readyState === WebSocket.OPEN) {
+          socketRef.current.send(JSON.stringify({
+            type: 'text_input',
+            data: {
+              text: transcript,
+              sourceLang,
+              targetLang
+            }
+          }));
+        }
       }
     };
 
@@ -178,6 +189,7 @@ export const useGeminiLive = () => {
   const disconnect = useCallback(() => {
     stopEverything();
     setCurrentText('');
+    setInputText('');
   }, [stopEverything]);
 
   // Cleanup on unmount
@@ -187,12 +199,31 @@ export const useGeminiLive = () => {
     };
   }, [disconnect]);
 
+  const simulateVoiceInput = (text: string, sourceLang: string, targetLang: string) => {
+    setInputText(text); // Update input text for simulation too
+
+    if (socketRef.current?.readyState === WebSocket.OPEN) {
+      socketRef.current.send(JSON.stringify({
+        type: 'text_input',
+        data: {
+          text,
+          sourceLang,
+          targetLang
+        }
+      }));
+    } else {
+      console.warn("Socket not connected");
+    }
+  };
+
   return {
     isConnected,
     isConnecting,
     error,
     currentText,
+    inputText,
     connect,
-    disconnect
+    disconnect,
+    simulateVoiceInput
   };
 };
