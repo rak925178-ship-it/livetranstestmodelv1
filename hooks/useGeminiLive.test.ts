@@ -54,6 +54,18 @@ const mockGetUserMedia = vi.fn().mockResolvedValue({
     getTracks: () => [{ stop: vi.fn() }],
 } as any);
 
+// Mock SpeechRecognition
+class MockSpeechRecognition {
+    lang: string = '';
+    continuous: boolean = false;
+    interimResults: boolean = false;
+    onresult: ((event: any) => void) | null = null;
+    onerror: ((event: any) => void) | null = null;
+    onend: (() => void) | null = null;
+    start = vi.fn();
+    stop = vi.fn();
+}
+
 describe('useGeminiLive', () => {
     let originalWebSocket: any;
     let originalAudioContext: any;
@@ -64,6 +76,9 @@ describe('useGeminiLive', () => {
 
         originalAudioContext = window.AudioContext;
         window.AudioContext = MockAudioContext as any;
+
+        (window as any).SpeechRecognition = MockSpeechRecognition;
+        (window as any).webkitSpeechRecognition = MockSpeechRecognition;
 
         Object.defineProperty(navigator, 'mediaDevices', {
             value: {
@@ -91,7 +106,7 @@ describe('useGeminiLive', () => {
         const { result } = renderHook(() => useGeminiLive());
 
         await act(async () => {
-            result.current.connect({ sourceLang: 'en', targetLang: 'ja', playAudio: false });
+            result.current.connect({ sourceLang: 'en', targetLang: 'ja', persona: 'none', playAudio: false });
         });
 
         expect(result.current.isConnecting).toBe(true);
@@ -112,6 +127,37 @@ describe('useGeminiLive', () => {
 
         // Now expect isConnecting to be false
         await waitFor(() => expect(result.current.isConnecting).toBe(false));
+    });
+
+    it('should replace text instead of appending', async () => {
+        const { result } = renderHook(() => useGeminiLive());
+
+        // Connect
+        await act(async () => {
+            result.current.connect({ sourceLang: 'en', targetLang: 'ja', persona: 'none', playAudio: false });
+        });
+
+        // Simulate connection
+        await waitFor(() => {
+            const socket = MockWebSocket.instances[MockWebSocket.instances.length - 1];
+            if (socket && socket.readyState === 1 && socket.onmessage) {
+                socket.onmessage({ data: JSON.stringify({ type: 'connected' }) });
+            }
+        });
+
+        // Simulate first translation
+        await act(async () => {
+            const socket = MockWebSocket.instances[MockWebSocket.instances.length - 1];
+            socket.onmessage!({ data: JSON.stringify({ type: 'text', content: 'Hello' }) });
+        });
+        expect(result.current.currentText).toBe('Hello');
+
+        // Simulate second translation (should replace, not append)
+        await act(async () => {
+            const socket = MockWebSocket.instances[MockWebSocket.instances.length - 1];
+            socket.onmessage!({ data: JSON.stringify({ type: 'text', content: 'World' }) });
+        });
+        expect(result.current.currentText).toBe('World');
     });
 
     // Note: To fully test the WebSocket interactions efficiently, 

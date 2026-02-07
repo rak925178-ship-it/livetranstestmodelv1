@@ -71,16 +71,15 @@ export const useGeminiLive = () => {
             break;
           case 'text':
             if (msg.content) {
-              currentTranscriptionRef.current += msg.content;
-              if (currentTranscriptionRef.current.length > 500) {
-                currentTranscriptionRef.current = currentTranscriptionRef.current.slice(-500);
-              }
+              // Replace previous text with new translation
+              currentTranscriptionRef.current = msg.content;
               setCurrentText(currentTranscriptionRef.current);
             }
             break;
           case 'turn_complete':
-            currentTranscriptionRef.current += " ";
-            setCurrentText(currentTranscriptionRef.current);
+            // No need to append space or do anything for replace mode
+            // currentTranscriptionRef.current += " ";
+            // setCurrentText(currentTranscriptionRef.current);
             break;
           case 'error':
             setError(msg.message);
